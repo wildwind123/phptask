@@ -88,6 +88,15 @@ if (($pathArray[0] ?? '')  === 'api') {
             printError('unknown method');
             break;
     }
+} else if ((($pathArray[0] ?? '')  === 'migrate') ) {
+   $db = (new Db(true))->GetDb();
+   $db->setAttribute( PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION );
+   $query = file_get_contents(__DIR__."/../script/db.sql");
+   $db->exec($query);
+   $db->exec('USE task');
+   $query = file_get_contents(__DIR__."/../script/task.sql");
+   $db->exec($query);
+    
 } else {
     $file_path = __DIR__."/../web/index.html";
     if (file_exists($file_path)) {

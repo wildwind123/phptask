@@ -10,8 +10,10 @@ services:
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: root
+    
     volumes:
-      - ./mysql/db:/var/lib/mysql
+      # - ./mysql/db:/var/lib/mysql
+      #- ./script/migration.sql:/docker-entrypoint.d/init.sql
     ports:
       - "${CONF_MYSQL_PORT}:3306"
   nginx:

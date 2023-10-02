@@ -11,7 +11,7 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: root
     
-    volumes:
+    # volumes:
       # - ./mysql/db:/var/lib/mysql
       #- ./script/migration.sql:/docker-entrypoint.d/init.sql
     ports:

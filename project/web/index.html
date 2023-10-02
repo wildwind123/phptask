@@ -6,12 +6,49 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Задачи</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 
 <body>
+
     <div class="task">
         <div id="task_loading" class="task_loading">
             Загрузка
+        </div>
+        <div id="edit-modal" class="modal">
+            <div class="modal-background"></div>
+            <div class="modal-card">
+                <header class="modal-card-head">
+                    <p class="modal-card-title">Редактировать задачу</p>
+                    <button onclick="showModal(false)" class="delete" aria-label="close"></button>
+                </header>
+                <section class="modal-card-body">
+                    <div class="field">
+                        <label class="label is-small">ID</label>
+                        <div class="control">
+                            <input id="edit-input-id" class="input is-small" type="number" disabled>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label is-small" type="string">Задача</label>
+                        <div class="control">
+                            <input id="edit-input-description" class="input is-small" type="text">
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="checkbox is-small">
+                            <div class="label is-small" type="string">Сделано
+                        </label>
+                        <input id="edit-input-done" type="checkbox">
+                        </label>
+                    </div>
+                </section>
+                <footer class="modal-card-foot">
+                    <button onclick="clickUpdate()" class="button is-success is-small">Сохранить и закрыть</button>
+                    <button onclick="showModal(false)" class="button is-small">Отмена</button>
+                    <button onclick="clickDeleteTask2()" class="button is-small is-danger">Удалить</button>
+                </footer>
+            </div>
         </div>
         <section class="section">
             <div class="container" style="margin-bottom: 20px;">
@@ -21,7 +58,8 @@
                 <div class="block">
                     <div class="field">
                         <div class="control">
-                            <input id="new-task-description" class="input is-small" type="text" placeholder="Описание задачи">
+                            <input id="new-task-description" class="input is-small" type="text"
+                                placeholder="Название задачи">
                         </div>
                     </div>
                     <button class="button is-small" onclick="clickMakeTask()">добавить</button>
@@ -39,12 +77,11 @@
                         <tr>
                             <th>ID</th>
                             <th>Задача</th>
-                            <th>Сделано</th>
-                            <th>Удалить</th>
+                            <th></th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody>
-
                     </tbody>
                 </table>
 
@@ -84,6 +121,16 @@
         }
     }
 
+    const showModal = (show) => {
+        const el = document.getElementById('edit-modal')
+        if (show) {
+            el.classList.add('is-active')
+        } else {
+            el.classList.remove('is-active')
+        }
+    }
+
+    // Requests
     const requestGetTask = () => {
         pageLoading(true)
         var requestOptions = {
@@ -170,21 +217,24 @@
             });
     }
 
+    // 
     const renderTasks = (items) => {
         var tbody = document.querySelector('#task tbody');
         while (tbody.firstChild) {
             tbody.removeChild(tbody.firstChild);
         }
         items.forEach((item) => {
-
-
             var newRow = document.createElement('tr');
             var cell1 = document.createElement('td');
             var cell2 = document.createElement('td');
             var cell3 = document.createElement('td');
             var cell4 = document.createElement('td');
             cell1.textContent = item.id;
-            cell2.textContent = item.description;
+            cell2.innerHTML = `
+            </a>
+            ${item.description}
+           
+            `;
             console.log('item.done', item.done)
             if (item.done === true) {
                 cell3.innerHTML = `<label class="checkbox">
@@ -195,7 +245,9 @@
                                 <input type="checkbox"  onclick="clickChecked('${btoa(encodeURIComponent(JSON.stringify(item)))}',true)">
                                 </label>`;
             }
-            cell4.innerHTML = `<button class='button is-small' onclick="clickDeleteTask('${btoa(encodeURIComponent(JSON.stringify(item)))}')">удалить</button>`
+            cell4.innerHTML = `<a onclick="clickEdit('${btoa(encodeURIComponent(JSON.stringify(item)))}')"><span class="material-icons">
+        edit
+        </span>`
             newRow.appendChild(cell1);
             newRow.appendChild(cell2);
             newRow.appendChild(cell3);
@@ -205,8 +257,7 @@
 
     }
 
-    requestGetTask()
-
+    // click
     const clickChecked = (item, checked) => {
         item = JSON.parse(decodeURIComponent(atob(item)))
         item.done = checked
@@ -222,13 +273,55 @@
     }
 
     const clickMakeTask = () => {
-        const el =  document.getElementById('new-task-description')
+        const el = document.getElementById('new-task-description')
         const item = {}
         item.description = el.value
         requestMakeTask(item)
     }
+    const clickEdit = (item) => {
+        item = JSON.parse(decodeURIComponent(atob(item)))
+        const elId = document.getElementById('edit-input-id')
+        const elDescription = document.getElementById('edit-input-description')
+        const elDone = document.getElementById('edit-input-done')
+        elId.value = item.id
+        elDescription.value = item.description
+        if (item.done) {
+            elDone.checked = true
+        } else {
+            elDone.checked = false
+        }
 
+        showModal(true)
+    }
+    const clickUpdate = () => {
+        const elId = document.getElementById('edit-input-id')
+        const elDescription = document.getElementById('edit-input-description')
+        const elDone = document.getElementById('edit-input-done')
+        const item = {}
+        item.id = elId.value
+        item.description = elDescription.value
+        item.done = elDone.checked
+        requestUpdateTask(item)
+        showModal(false)
+    }
 
+    const clickDeleteTask2 = () => {
+        const elId = document.getElementById('edit-input-id')
+        const elDescription = document.getElementById('edit-input-description')
+        const elDone = document.getElementById('edit-input-done')
+        const item = {}
+        item.id = elId.value
+        item.description = elDescription.value
+        item.done = elDone.checked
 
+        if (!confirm(`В действительно хотите удалить задачу "${item.id}. ${item.description}" `)) {
+            return;
+        }
+        requestDeleteTask(item.id)
+        showModal(false)
+    }
+
+    // 
+    requestGetTask()
 
 </script>

@@ -3,7 +3,11 @@
 ```
 docker-compose up
 # после запуска всех контейнеров
-docker exec -it {container php} bash
+# найти контейнет php
+docker ps
+# подключиться к bash
+# пример
+docker exec -it phptesttask_php_1 bash
 composer install
 ```
 

@@ -18,3 +18,9 @@ http://localhost:8002/migrate
 для создания бд и таблицу
 
 открыть http://localhost:8002
+
+
+# пример
+![plot](./images/task.png)
+
+![plot](./images/task_edit.png)

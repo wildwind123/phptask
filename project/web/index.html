@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Hello Bulma!</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+</head>
+
+<body>
+    <div class="task">
+        <div id="task_loading" class="task_loading">
+            Загрузка
+        </div>
+        <section class="section">
+            <div class="container" style="margin-bottom: 20px;">
+                <h1 class="title">
+                    Добавить задачу
+                </h1>
+                <div class="block">
+                    <div class="field">
+                        <div class="control">
+                            <input id="new-task-description" class="input is-small" type="text" placeholder="Описание задачи">
+                        </div>
+                    </div>
+                    <button class="button is-small" onclick="clickMakeTask()">добавить</button>
+                </div>
+            </div>
+            <div class="container">
+                <h1 class="title">
+                    Список задач
+                </h1>
+                <p class="subtitle">
+                    Just do it !!!
+                </p>
+                <table id="task" class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Задача</th>
+                            <th>Сделано</th>
+                            <th>Удалить</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                    </tbody>
+                </table>
+
+            </div>
+        </section>
+    </div>
+</body>
+
+</html>
+<style>
+    .task_loading {
+        left: 0;
+        top: 0;
+        z-index: 100;
+        position: fixed;
+        height: 100vh;
+        width: 100vw;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        overflow: none;
+        background-color: rgba(0, 225, 255, 0.336);
+        transition: all 5s ease-in-out;
+    }
+</style>
+
+<script>
+
+    const url = ""
+
+    const pageLoading = (loading) => {
+        const taskLoadingEl = document.getElementById('task_loading')
+        if (loading) {
+            taskLoadingEl.style.display = 'flex'
+        } else {
+            taskLoadingEl.style.display = 'none'
+        }
+    }
+
+    const requestGetTask = () => {
+        pageLoading(true)
+        var requestOptions = {
+            method: 'GET',
+            redirect: 'follow'
+        };
+
+        fetch(url + "/api/task", requestOptions)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(result => renderTasks(result.data))
+            .catch(error => console.log('error', error)).finally(pageLoading(false));
+    }
+
+    const requestUpdateTask = (task) => {
+        pageLoading(true)
+        var myHeaders = new Headers();
+        myHeaders.append("Content-Type", "application/json");
+
+        var raw = JSON.stringify({
+            "id": task.id,
+            "description": task.description,
+            "done": task.done,
+        });
+
+        var requestOptions = {
+            method: 'PUT',
+            headers: myHeaders,
+            body: raw,
+            redirect: 'follow'
+        };
+
+        fetch(url + "/api/task/" + task.id, requestOptions)
+            .then(response => response.text())
+            .then(result => console.log(result))
+            .catch(error => console.log('error', error)).finally(
+                () => {
+                    pageLoading(false)
+                    requestGetTask();
+                }
+            );
+    }
+
+    const requestMakeTask = (item) => {
+        pageLoading(true)
+        var myHeaders = new Headers();
+        myHeaders.append("Content-Type", "application/json");
+
+        var raw = JSON.stringify(item);
+
+        var requestOptions = {
+            method: 'POST',
+            headers: myHeaders,
+            body: raw,
+            redirect: 'follow'
+        };
+
+        fetch(url + "/api/task", requestOptions)
+            .then(response => response.text())
+            .then(result => console.log(result))
+            .catch(error => console.log('error', error)).finally(() => {
+                pageLoading(true)
+                requestGetTask();
+            });
+    }
+
+    const requestDeleteTask = (taskId) => {
+        pageLoading(true)
+        var requestOptions = {
+            method: 'DELETE',
+            redirect: 'follow'
+        };
+
+        fetch(url + "/api/task/" + taskId, requestOptions)
+            .then(response => response.text())
+            .then(result => console.log(result))
+            .catch(error => console.log('error', error)).finally(() => {
+                pageLoading(false)
+                requestGetTask()
+            });
+    }
+
+    const renderTasks = (items) => {
+        var tbody = document.querySelector('#task tbody');
+        while (tbody.firstChild) {
+            tbody.removeChild(tbody.firstChild);
+        }
+        items.forEach((item) => {
+
+
+            var newRow = document.createElement('tr');
+            var cell1 = document.createElement('td');
+            var cell2 = document.createElement('td');
+            var cell3 = document.createElement('td');
+            var cell4 = document.createElement('td');
+            cell1.textContent = item.id;
+            cell2.textContent = item.description;
+            console.log('item.done', item.done)
+            if (item.done === true) {
+                cell3.innerHTML = `<label class="checkbox">
+                                <input type="checkbox" checked onclick="clickChecked('${(btoa(encodeURIComponent(JSON.stringify(item))))}',false)" >
+                                </label>`;
+            } else {
+                cell3.innerHTML = `<label class="checkbox">
+                                <input type="checkbox"  onclick="clickChecked('${btoa(encodeURIComponent(JSON.stringify(item)))}',true)">
+                                </label>`;
+            }
+            cell4.innerHTML = `<button class='button is-small' onclick="clickDeleteTask('${btoa(encodeURIComponent(JSON.stringify(item)))}')">удалить</button>`
+            newRow.appendChild(cell1);
+            newRow.appendChild(cell2);
+            newRow.appendChild(cell3);
+            newRow.appendChild(cell4);
+            tbody.appendChild(newRow);
+        })
+
+    }
+
+    requestGetTask()
+
+    const clickChecked = (item, checked) => {
+        item = JSON.parse(decodeURIComponent(atob(item)))
+        item.done = checked
+        requestUpdateTask(item)
+    }
+
+    const clickDeleteTask = (item) => {
+        item = JSON.parse(decodeURIComponent(atob(item)))
+        if (!confirm(`В действительно хотите удалить задачу "${item.id}. ${item.description}" `)) {
+            return;
+        }
+        requestDeleteTask(item.id)
+    }
+
+    const clickMakeTask = () => {
+        const el =  document.getElementById('new-task-description')
+        const item = {}
+        item.description = el.value
+        requestMakeTask(item)
+    }
+
+
+
+
+</script>

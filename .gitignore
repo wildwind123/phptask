@@ -1,0 +1,4 @@
+mysql/db/*
+.idea
+project/vendor/*
+.vscode

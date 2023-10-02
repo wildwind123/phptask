@@ -1,2 +1,5 @@
-# php-xdebug-example
-# phptask
+# Запуск
+
+```
+docker-compose up
+```

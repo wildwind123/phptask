@@ -1,7 +1,6 @@
 <?php
 namespace project\api;
 
-use Exception;
 use project\db\Db;
 
 class Task
